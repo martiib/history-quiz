@@ -10,5 +10,4 @@ Project is created with:
 * Python version 3.11
 
 To run this project, install pyfiglet and colorama.
-"# history-quiz" 
-"# history-quiz" 
+
