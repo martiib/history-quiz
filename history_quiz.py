@@ -1,113 +1,122 @@
-# -- IMPORT SECTION --------------------------------
+# history_quiz_portfolio.py
 import pyfiglet
 import colorama
 from colorama import Fore
+import csv
+import random
+
 colorama.init(autoreset=True)
-# -------------------------------------------------
 
-# -- FUNCTION DEFINITIONS ---------------------------
-def play(questions, options, answers):
-    """
-    plays the quiz one question after the other. Stops if the user inputs 0.
-    """
-    guesses = []
-    question_number = 0
-    score = 0
-    for question in questions:
-        print("--------------------------------------")
-        print(question)
-        for option in options[question_number]:
-            print(option)
+# ================== QUESTIONS ==================
+type Options = list[str]
+type Question = dict[str, str | Options]
+type Guess = list[str]
 
-        guess = input("Enter A, B, C or D: ").upper()
+questions = [
+    {"question": "In which year did World War II begin?", "options": ["1914", "1945", "1939", "1918"], "answer": "C"},
+    {"question": "Who wrote the 95 Theses?", "options": ["Saint Augustus", "Martin Luther", "Voltaire", "John Calvin"], "answer": "B"},
+    {"question": "On what island was Napoleon born?", "options": ["Corsica", "St Helena", "Sardinia", "Elba"], "answer": "A"},
+    {"question": "In which country was the Battle of Hastings in 1066 fought?", "options": ["France", "England", "Germany", "Spain"], "answer": "B"},
+    {"question": "Which woman discovered radium and polonium?", "options": ["Rosalind Franklin", "Ada Lovelace", "Maria Skłodowska-Curie", "Grace Hopper"], "answer": "C"},
+    {"question": "When did the Berlin Wall fall?", "options": ["1989", "2000", "1961", "1991"], "answer": "A"},
+    {"question": "What was Michelangelo's last name?", "options": ["Brunelleschi", "Buonarroti", "Botticelli", "Bellotto"], "answer": "B"},
+    {"question": "In which year did Albert Einstein get the Nobel Prize?", "options": ["1955", "1916", "1905", "1921"], "answer": "D"},
+    {"question": "Who was the first person in the world to land on the moon?", "options": ["Yury Gagarin", "Neil Armstrong", "Valentina Tereshkova", "Alan Shepard"], "answer": "B"},
+    {"question": "What year did the French Revolution start?", "options": ["1799", "1917", "1815", "1789"], "answer": "D"}
+]
+
+# ================== FUNCTIONS ==================
+
+def play_quiz(questions_list: list[Question]) -> tuple[Guess, int]:
+    """
+    Plays the quiz, asks each question, checks answers, and returns the guesses and score.
+    
+    Input Params:
+        questions_list (list[Question]) : list of all the available quiz questions.
+
+    Output:
+        guesses, score : guesses are the total guessed answers, score is the player's total score
+    """
+    random.shuffle(questions_list)  # Randomize question order
+    guesses = [] # list containing all the answers provided by the user
+    score = 0 # current total score
+
+    # For each question
+    for i, q in enumerate(questions_list):
+        # Display the question
+        print(f"\nQuestion {i}: {q['question']}")
+        
+        # # Randomize the options
+        # opts = q['options'][:]
+        # random.shuffle(opts)  
+
+        # Create a dictionary with letters as its keys
+        option_map = dict(zip(['A', 'B', 'C', 'D'], q['options']))
+
+        # Display all the options together with their keys
+        for key, val in option_map.items():
+            print(f"{key}: {val}")
+
+        # Ask the user to choose an option
+        guess = input("Enter A, B, C or D (or 0 to quit): ").upper()
+        
+        # Input control: check for validity of the guess
         while guess not in 'ABCD0':
-            guess = input(f"The choice MUST be within A, B, C or D while you have typed {guess}.\nPlease, enter A, B, C or D: ").upper()
-        guesses.append(guess)
-        if guess == "0":
+            guess = input("Invalid! Enter A, B, C or D: ").upper()
+
+        if guess == '0':
             break
-        elif guess == answers[question_number]:
+
+        guesses.append(guess)
+
+        # correct_letter = [k for k, v in option_map.items() if v == q['options'][ord(q['answer'])-65]][0]
+        #if guess == correct_letter:
+        if guess == q['answers']:
             score += 1
             print(Fore.GREEN + "Correct!")
-        elif guess not in ("A", "B", "C", "D".upper()):
-            print(Fore.YELLOW + "Sorry I don't understand ")
         else:
-            print(Fore.RED + "Incorrect")
-
-        question_number += 1
+            #print(Fore.RED + f"Incorrect! Correct answer was {correct_letter}")
+            print(Fore.RED + f"Incorrect! Correct answer was {q['answers']}")
 
     return guesses, score
 
-def show_results(questions, answers, guesses, score):
+
+def show_results(questions_list: list[Question], guesses: Guess, score: int):
     """
-    Shows the results as well as the overall mark.
+    Displays the final results, percentage score, ASCII art based on performance,
+    and saves the score to a CSV file.
+
+    Input Params:
+        questions_list (list[Question]) : list of all the quiz questions
+        guesses (Guess) : list of guessed answers for the player
+        score (int) : current total score for the player
     """
-    print("========================================")
-    result = "\tR\tE\tS\tU\tL\tT\t"
-    print(result.center(21, '='))
-    print()
-    print("\tYou got " + str(score) + " of " + str(len(questions)) + " correct")
+    total_questions = len(questions_list)
+    percent = round((score / total_questions) * 100)
+    print("\n" + "="*40)
+    print(f"You answered {score} out of {total_questions} correctly ({percent}%)")
 
-    if score == 10:
-        result = pyfiglet.figlet_format("Congratulations", font="slant")
-        print(result)
-    elif score >= 8 and score < 10:
-        result = pyfiglet.figlet_format("Very well", font="slant")
-        print(result)
-    elif score >= 6 and score <= 7:
-        result = pyfiglet.figlet_format("Not bad !", font="slant")
-        print(result)
-    elif score <= 5:
-        result = pyfiglet.figlet_format("Not very well ...", font="slant")
-        print(result)
+    if percent == 100:
+        print(Fore.CYAN + pyfiglet.figlet_format("Excellent!", font="slant"))
+    elif percent >= 80:
+        print(Fore.CYAN + pyfiglet.figlet_format("Very Good!", font="slant"))
+    elif percent >= 60:
+        print(Fore.CYAN + pyfiglet.figlet_format("Not Bad!", font="slant"))
+    else:
+        print(Fore.CYAN + pyfiglet.figlet_format("Keep Trying!", font="slant"))
 
-    print("------------------------------------")
-    print("correct \nanswers: ", end='')
-    for answer in answers:
-        print(answer, end=' ')
-    print()
-    print("your \nguesses: ", end='')
-    for guess in guesses:
-        print(guess, end=' ')
-    print()
+    print("\nCorrect answers:", " ".join([q['answer'] for q in questions_list]))
+    print("Your guesses:   ", " ".join(guesses))
 
-    print("-------------------------------------")
-# ---------------------------------------------------
+    # Save results to CSV
+    with open("quiz_results.csv", "a", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([score, total_questions, percent])
+    print(Fore.CYAN + "\nYour result has been saved to quiz_results.csv")
 
-# --- VARIABLE DECLARATIONS ----------------------------
-questions = ("In which year did World War II begin?: ",
-             "Who wrote a document known as the 95 Theses?: ",
-             "On what island was Napoleon born?: ",
-             "In which country was the Battle of Hastings in 1066 fought?: ",
-             "What woman discovered radium and polonium?: ",
-             "When did the Berlin Wall fall?: ",
-             "What was Michelangelo's last name?:  ",
-             "In which year did Albert Einstein get the Nobel Prize?: ",
-             "Who was the first person in the world to land on the moon?: ",
-             "What year did the French Revolution start?: ")
-
-options = (("A: 1914", "B: 1945", "C: 1939", "D: 1918"),
-           ("A: Saint Augustus", "B: Martin Luther", "C: Voltaire", "D: John Calvin"),
-           ("A: Corsica", "B: St Helena", "C: Sardinia", "D: Elba"),
-           ("A: France", "B: England", "C: Germany", "D: Spain"),
-           ("A: Rosalind Franklin", "B: Ada Lovelace", "C: Maria Sklodowska-Curie", "D: Grace Hopper"),
-           ("A: 1989", "B: 2000", "C: 1961", "D: 1991"),
-           ("A: Brunelleschi", "B: Buonarroti", "C: Botticelli", "D: Bellotto"),
-           ("A: 1955", "B: 1916", "C: 1905", "D: 1921"),
-           ("A: Yury Gagarin", "B: Neil Armstrong", "C: Valentina Tereshkova", "D: Alan Shepard"),
-           ("A: 1799", "B: 1917", "C: 1815", "D: 1789"))
-
-answers = ("C", "B", "A", "B", "C", "A", "B", "D", "B", "D")
-score = 0
-question_number = 0
-guess = None
-# --------------------------
-
-# --- MAIN -----------------
-# Welcome the user
-print(f"The quiz consists of {len(questions)} questions, each with four possible answers of which only one is correct. Press 0 as an answer to quit the quiz.")
-
-# Play the game one question after the other
-guesses, score = play(questions = questions, options = options, answers = answers)
-
-# When the quiz is over, show the results
-show_results(questions = questions, answers = answers, guesses = guesses, score = score)
+# ================== MAIN ==================
+if __name__ == '__main__':
+    print(Fore.CYAN + pyfiglet.figlet_format("HISTORY QUIZ", font="standard"))
+    print("Welcome! The quiz has 10 questions. Press 0 to quit anytime.")
+    guesses, score = play_quiz(questions)
+    show_results(questions, guesses, score)
