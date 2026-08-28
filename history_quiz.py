@@ -45,10 +45,6 @@ def play_quiz(questions_list: list[Question]) -> tuple[Guess, int]:
     for i, q in enumerate(questions_list):
         # Display the question
         print(f"\nQuestion {i}: {q['question']}")
-        
-        # # Randomize the options
-        # opts = q['options'][:]
-        # random.shuffle(opts)  
 
         # Create a dictionary with letters as its keys
         option_map = dict(zip(['A', 'B', 'C', 'D'], q['options']))
@@ -69,14 +65,11 @@ def play_quiz(questions_list: list[Question]) -> tuple[Guess, int]:
 
         guesses.append(guess)
 
-        # correct_letter = [k for k, v in option_map.items() if v == q['options'][ord(q['answer'])-65]][0]
-        #if guess == correct_letter:
-        if guess == q['answers']:
+        if guess == q['answer']:
             score += 1
             print(Fore.GREEN + "Correct!")
         else:
-            #print(Fore.RED + f"Incorrect! Correct answer was {correct_letter}")
-            print(Fore.RED + f"Incorrect! Correct answer was {q['answers']}")
+            print(Fore.RED + f"Incorrect! Correct answer was {q['answer']}")
 
     return guesses, score
 
