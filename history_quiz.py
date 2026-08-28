@@ -42,7 +42,7 @@ def play_quiz(questions_list: list[Question]) -> tuple[Guess, int]:
     score = 0 # current total score
 
     # For each question
-    for i, q in enumerate(questions_list):
+    for i, q in enumerate(questions_list, start=1):
         # Display the question
         print(f"\nQuestion {i}: {q['question']}")
 
